@@ -11,6 +11,7 @@ var count = 0
 // =============================================================
 var app = express();
 var PORT = 8080;
+const mainDir = path.join(__dirname, "/public");
 
 // Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
@@ -22,51 +23,50 @@ app.use(express.static("public"));
 // Routes
 // =============================================================
 
-app.get("/", function(req, res) {
-  res.sendFile(path.join(__dirname,"public/index.html"));
-});
-
 app.get("/notes", function(req, res) {
-  res.sendFile(path.join(__dirname,"public/notes.html"));
+  res.sendFile(path.join(mainDir, "notes.html"));
 });
 
 app.get("/api/notes", function(req, res) {
-  res.json(db);
+  res.sendFile(path.join(__dirname, "/db/db.json"));
+});
+
+app.get("/api/notes/:id", function(req, res) {
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  res.json(savedNotes[Number(req.params.id)]);
+});
+
+app.get("*", function(req, res) {
+  res.sendFile(path.join(mainDir, "index.html"));
 });
 
 app.post("/api/notes", function(req, res) {
-  console.log(req.body);
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  let newNote = req.body;
+  let uniqueID = (savedNotes.length).toString();
+  newNote.id = uniqueID;
+  savedNotes.push(newNote);
 
-  count++
-  req.body.id = count
-
-  db.push(req.body);
-
-  
-  fs.writeFile("./db/db.json", JSON.stringify(db), function(){
-    res.json(req.body)
-  });
-});
-
-app.delete("/api/notes/:id", function(req, res) {
-// {
-//   headers: {...},
-//   url: "/api/notes/2",
-//   ...console,
-//   params: {
-//     id: "2"
-//   },
-//   body:{},
-//   query:{}
-// }
-//   console.log(req.params.id)
-
-// var newdb = db.filter(!note.id)
-
-delete 
-
+  fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes));
+  console.log("Note saved to db.json. Content: ", newNote);
+  res.json(savedNotes);
 })
 
+app.delete("/api/notes/:id", function(req, res) {
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  let noteID = req.params.id;
+  let newID = 0;
+  
+  savedNotes = savedNotes.filter(currNote => currNote.id != noteID);
+  
+  for (currNote of savedNotes) {
+      currNote.id = newID.toString();
+      newID++;
+  }
+
+  fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes));
+  res.json(savedNotes);
+})
 
 
 // Starts the server to begin listening
