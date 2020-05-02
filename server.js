@@ -22,9 +22,9 @@ app.use(express.static("public"));
 // Routes
 // =============================================================
 
-// app.get("/notes", function(req, res) {
-//   res.sendFile(path.join(mainDir, "notes.html"));
-// });
+app.get("/notes", function(req, res) {
+  res.sendFile(path.join(__dirname, "./public/notes.html"));
+});
 
 app.get("/api/notes", function(req, res) {
   res.sendFile(path.join(__dirname, "/db/db.json"));
